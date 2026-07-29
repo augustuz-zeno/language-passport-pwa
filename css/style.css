@@ -93,37 +93,82 @@ header {
 [data-theme="dark"] .icon-moon { display: none; }
 [data-theme="light"] .icon-sun { display: none; }
 
-/* SubTabs (Pills) */
-nav.subtabs {
+/* Home Screen Categories */
+.home-grid {
   display: flex;
-  gap: 8px;
-  margin: 24px 0 16px;
-  overflow-x: auto;
-  padding-bottom: 8px;
-  scrollbar-width: none; /* Firefox */
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 24px;
 }
-nav.subtabs::-webkit-scrollbar { display: none; /* Safari/Chrome */ }
-
-nav.subtabs button {
-  flex: 0 0 auto;
+.lang-card {
   background: var(--card-bg);
   border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 24px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: var(--shadow-sm);
+  text-align: left;
+}
+.lang-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--border-hover);
+}
+.lang-card:active {
+  transform: translateY(0);
+}
+.lang-card-title {
+  font-family: 'Fraunces', serif;
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text-main);
+  margin: 0 0 6px;
+}
+.lang-card-desc {
+  font-size: 13px;
   color: var(--text-soft);
-  padding: 10px 18px;
+  margin: 0;
+  font-family: 'Inter', sans-serif;
+}
+.lang-card-arrow {
+  color: var(--text-soft);
+  opacity: 0.5;
+  transition: all 0.2s ease;
+}
+.lang-card:hover .lang-card-arrow {
+  transform: translateX(4px);
+  opacity: 1;
+  color: var(--accent);
+}
+
+/* Back Button */
+.back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: transparent;
+  border: none;
+  color: var(--text-soft);
   font-family: 'Inter', sans-serif;
   font-weight: 600;
   font-size: 14px;
-  border-radius: 999px;
   cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: var(--shadow-sm);
+  padding: 8px 0;
+  margin-bottom: 8px;
+  margin-top: 16px;
+  transition: color 0.2s ease;
 }
-nav.subtabs button:hover { border-color: var(--border-hover); color: var(--text-main); }
-nav.subtabs button.active {
-  background: var(--text-main);
-  color: var(--bg);
-  border-color: var(--text-main);
-  box-shadow: var(--shadow-md);
+.back-btn:hover {
+  color: var(--text-main);
+}
+.back-btn svg {
+  width: 16px;
+  height: 16px;
+  fill: currentColor;
 }
 
 /* Alphabet Grid */

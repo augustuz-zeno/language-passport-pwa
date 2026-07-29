@@ -27,7 +27,15 @@ if('serviceWorker' in navigator){
   });
 }
 /* ================= LOGIC ================= */
-let currentCategory = 'tr';
+let currentView = 'home'; // 'home' or category id
+
+const CATEGORIES = [
+  { id: 'tr', title: 'Турецкий', desc: '29 букв. Латиница.', data: TURKISH },
+  { id: 'uk', title: 'Украинский', desc: '33 буквы. Кириллица.', data: UKRAINIAN },
+  { id: 'hira', title: 'Хирагана', desc: 'Базовая японская азбука.', data: HIRAGANA },
+  { id: 'kata', title: 'Катакана', desc: 'Азбука для заимствований.', data: KATAKANA },
+  { id: 'kanji', title: 'Кандзи', desc: 'Базовые японские иероглифы.', data: KANJI }
+];
 
 function speak(text, lang) {
   // Затычка на будущее, аудио пока отключено
@@ -44,38 +52,7 @@ function getIconMoon() {
 function render() {
   const app = document.getElementById('app');
   
-  const subs = [
-    ['tr', 'Турецкий', TURKISH],
-    ['uk', 'Украинский', UKRAINIAN],
-    ['hira', 'Хирагана', HIRAGANA],
-    ['kata', 'Катакана', KATAKANA],
-    ['kanji', 'Кандзи', KANJI]
-  ];
-  
-  const subNavHtml = subs.map(([id, label]) => 
-    `<button class="${currentCategory === id ? 'active' : ''}" onclick="setCategory('${id}')">${label}</button>`
-  ).join('');
-
-  let contentHtml = '';
-  if (currentCategory === 'tr') {
-    contentHtml = renderCategory('tr', 'Турецкий алфавит', '29 букв. Произношение дано приблизительной русской транскрипцией.', TURKISH, tile);
-  } else if (currentCategory === 'uk') {
-    contentHtml = renderCategory('uk', 'Украинский алфавит', '33 буквы. Многие похожи на русские — обрати внимание на г/ґ, и/і, е/є.', UKRAINIAN, tile);
-  } else if (currentCategory === 'hira') {
-    contentHtml = `<p class="alpha-intro">Хирагана — базовая японская азбука.</p>
-      ${kanaGroup(HIRAGANA, 'base', 'Основные знаки (годзюон)')}
-      ${kanaGroup(HIRAGANA, 'daku', 'Звонкие (дакутэн)')}
-      ${kanaGroup(HIRAGANA, 'handaku', 'Полузвонкие (хандакутэн)')}`;
-  } else if (currentCategory === 'kata') {
-    contentHtml = `<p class="alpha-intro">Катакана — азбука для иностранных слов и имён.</p>
-      ${kanaGroup(KATAKANA, 'base', 'Основные знаки (годзюон)')}
-      ${kanaGroup(KATAKANA, 'daku', 'Звонкие (дакутэн)')}
-      ${kanaGroup(KATAKANA, 'handaku', 'Полузвонкие (хандакутэн)')}`;
-  } else if (currentCategory === 'kanji') {
-    contentHtml = renderCategory('kanji', 'Кандзи', 'Иероглифы для старта: числа и базовые понятия.', KANJI, kanjiTile);
-  }
-
-  app.innerHTML = `
+  let headerHtml = `
     <header>
       <div class="title-block">
         <h1>Языковой <span class="accent">паспорт</span></h1>
@@ -86,10 +63,55 @@ function render() {
         ${getIconMoon()}
       </button>
     </header>
-    
-    <nav class="subtabs">${subNavHtml}</nav>
-    <div id="content">${contentHtml}</div>
   `;
+
+  let contentHtml = '';
+  
+  if (currentView === 'home') {
+    const cardsHtml = CATEGORIES.map(cat => `
+      <div class="lang-card" onclick="setView('${cat.id}')">
+        <div>
+          <h2 class="lang-card-title">${cat.title}</h2>
+          <p class="lang-card-desc">${cat.desc}</p>
+        </div>
+        <div class="lang-card-arrow">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="9 18 15 12 9 6"></polyline>
+          </svg>
+        </div>
+      </div>
+    `).join('');
+    
+    contentHtml = `<div class="home-grid">${cardsHtml}</div>`;
+  } else {
+    // Render Category
+    const backBtn = `
+      <button class="back-btn" onclick="setView('home')">
+        <svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+        Назад
+      </button>
+    `;
+    
+    if (currentView === 'tr') {
+      contentHtml = backBtn + renderCategory('tr', 'Турецкий алфавит', '29 букв. Произношение дано приблизительной русской транскрипцией.', TURKISH, tile);
+    } else if (currentView === 'uk') {
+      contentHtml = backBtn + renderCategory('uk', 'Украинский алфавит', '33 буквы. Многие похожи на русские — обрати внимание на г/ґ, и/і, е/є.', UKRAINIAN, tile);
+    } else if (currentView === 'hira') {
+      contentHtml = backBtn + `<p class="alpha-intro">Хирагана — базовая японская азбука.</p>
+        ${kanaGroup(HIRAGANA, 'base', 'Основные знаки (годзюон)')}
+        ${kanaGroup(HIRAGANA, 'daku', 'Звонкие (дакутэн)')}
+        ${kanaGroup(HIRAGANA, 'handaku', 'Полузвонкие (хандакутэн)')}`;
+    } else if (currentView === 'kata') {
+      contentHtml = backBtn + `<p class="alpha-intro">Катакана — азбука для иностранных слов и имён.</p>
+        ${kanaGroup(KATAKANA, 'base', 'Основные знаки (годзюон)')}
+        ${kanaGroup(KATAKANA, 'daku', 'Звонкие (дакутэн)')}
+        ${kanaGroup(KATAKANA, 'handaku', 'Полузвонкие (хандакутэн)')}`;
+    } else if (currentView === 'kanji') {
+      contentHtml = backBtn + renderCategory('kanji', 'Кандзи', 'Иероглифы для старта: числа и базовые понятия.', KANJI, kanjiTile);
+    }
+  }
+
+  app.innerHTML = headerHtml + `<div id="content">${contentHtml}</div>`;
 }
 
 function renderCategory(catId, title, intro, dataArr, tileRenderer) {
@@ -146,14 +168,14 @@ function kanaGroup(list, group, title) {
   `;
 }
 
-function setCategory(id) {
-  currentCategory = id;
+function setView(id) {
+  currentView = id;
   render();
 }
 
 // Экспортируем глобально, так как не используем type="module"
 window.toggleTheme = toggleTheme;
-window.setCategory = setCategory;
+window.setView = setView;
 window.speak = speak;
 
 // Первичный рендер
