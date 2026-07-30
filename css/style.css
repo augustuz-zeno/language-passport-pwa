@@ -1,15 +1,16 @@
 :root {
-  --bg: #0A0A0C;
+  --bg: #0D0E12;
   --text-main: #FFFFFF;
-  --text-soft: rgba(255, 255, 255, 0.7);
+  --text-soft: rgba(255, 255, 255, 0.6);
   --accent: #8b5cf6;
   --accent-hover: #a78bfa;
   --success: #10b981;
   --glass-bg: rgba(255, 255, 255, 0.03);
+  --glass-bg-hover: rgba(255, 255, 255, 0.06);
   --glass-border: rgba(255, 255, 255, 0.08);
-  --glass-border-top: rgba(255, 255, 255, 0.15);
+  --glass-border-top: rgba(255, 255, 255, 0.12);
   --glass-border-hover: rgba(255, 255, 255, 0.2);
-  --glass-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+  --glass-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
 }
 
 * { box-sizing: border-box; }
@@ -28,7 +29,7 @@ body::before, body::after {
   content: "";
   position: fixed;
   border-radius: 50%;
-  filter: blur(100px);
+  filter: blur(120px);
   z-index: -1;
   pointer-events: none;
 }
@@ -36,7 +37,7 @@ body::before, body::after {
 body::before {
   width: 500px;
   height: 500px;
-  background: radial-gradient(circle, rgba(124, 58, 237, 0.25), rgba(0,0,0,0) 70%);
+  background: radial-gradient(circle, rgba(139, 92, 246, 0.15), rgba(0,0,0,0) 70%);
   top: -150px;
   left: -150px;
 }
@@ -44,7 +45,7 @@ body::before {
 body::after {
   width: 400px;
   height: 400px;
-  background: radial-gradient(circle, rgba(16, 185, 129, 0.15), rgba(0,0,0,0) 70%);
+  background: radial-gradient(circle, rgba(200, 200, 200, 0.1), rgba(0,0,0,0) 70%);
   bottom: -100px;
   right: -100px;
 }
@@ -56,7 +57,7 @@ header {
   position: sticky;
   top: 0;
   z-index: 100;
-  background: rgba(10, 10, 12, 0.6);
+  background: rgba(13, 14, 18, 0.6);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   padding: 20px 0 16px;
@@ -70,7 +71,7 @@ header {
 }
 
 .title-block h1 {
-  font-family: 'Fraunces', serif;
+  font-family: 'Inter', sans-serif;
   font-weight: 700;
   font-size: 24px;
   margin: 0;
@@ -100,20 +101,21 @@ header {
   align-items: center;
   justify-content: space-between;
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.3s ease;
   box-shadow: var(--glass-shadow);
   text-align: left;
 }
 
 .lang-card:hover {
   transform: translateY(-2px);
+  background: var(--glass-bg-hover);
   border-color: var(--glass-border-hover);
   border-top-color: var(--glass-border-hover);
-  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
 }
 
 .lang-card-title {
-  font-family: 'Fraunces', serif;
+  font-family: 'Inter', sans-serif;
   font-size: 20px;
   font-weight: 600;
   color: var(--text-main);
@@ -124,7 +126,6 @@ header {
   font-size: 13px;
   color: var(--text-soft);
   margin: 0;
-  font-family: 'Inter', sans-serif;
 }
 
 .lang-card-arrow {
@@ -152,7 +153,7 @@ header {
   font-size: 14px;
   cursor: pointer;
   padding: 8px 0;
-  margin-bottom: 8px;
+  margin-bottom: 16px;
   margin-top: 16px;
   transition: color 0.3s ease;
 }
@@ -165,12 +166,57 @@ header {
   fill: currentColor;
 }
 
+/* Tab Bar */
+.tab-bar-scroll {
+  overflow-x: auto;
+  margin: 0 -16px 20px;
+  padding: 4px 16px;
+  scrollbar-width: none;
+}
+.tab-bar-scroll::-webkit-scrollbar { display: none; }
+
+.tab-bar {
+  display: inline-flex;
+  gap: 8px;
+  background: var(--glass-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--glass-border);
+  border-radius: 16px;
+  padding: 4px;
+  box-shadow: var(--glass-shadow);
+}
+
+.tab-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-soft);
+  padding: 8px 16px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.3s ease;
+}
+
+.tab-btn:hover {
+  color: var(--text-main);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.tab-btn.active {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-main);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
 /* Alphabet Grid */
 .alpha-intro {
   font-size: 14px; color: var(--text-soft); margin-bottom: 20px; line-height: 1.6;
 }
 .alpha-group-title {
-  font-family: 'IBM Plex Mono', monospace;
+  font-family: 'Inter', sans-serif;
   font-size: 12px;
   text-transform: uppercase;
   letter-spacing: 0.06em;
@@ -205,22 +251,22 @@ header {
   padding: 16px 10px;
   text-align: center;
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.3s ease;
   box-shadow: var(--glass-shadow);
   user-select: none;
   -webkit-tap-highlight-color: transparent;
 }
 .alpha-tile:hover {
   transform: translateY(-2px);
+  background: var(--glass-bg-hover);
   border-color: var(--glass-border-hover);
   border-top-color: var(--glass-border-hover);
-  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
 }
 
 .alpha-ch {
-  font-family: 'Fraunces', serif;
   font-size: 32px;
-  font-weight: 600;
+  font-weight: 700;
   line-height: 1.1;
   color: var(--text-main);
   margin-bottom: 8px;
@@ -228,36 +274,14 @@ header {
 }
 .alpha-ch.jp-font { font-size: 36px; font-weight: 500; }
 
-.alpha-pron {
-  font-size: 13px;
+.alpha-trans {
+  font-size: 14px;
   color: var(--text-soft);
-  font-family: 'IBM Plex Mono', monospace;
+  margin-bottom: 4px;
 }
 
-.kanji-mean { font-size: 12px; color: var(--text-main); margin-top: 6px; opacity: 0.8; }
-
-/* Install Banner */
-.install-banner {
-  display: flex; align-items: center; justify-content: space-between; gap: 12px;
-  background: var(--glass-bg);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid var(--glass-border);
-  border-top-color: var(--glass-border-top);
-  border-radius: 16px;
-  padding: 16px 20px;
-  margin: 20px 0;
-  box-shadow: var(--glass-shadow);
-}
-.install-banner span { font-size: 14px; font-weight: 500; color: var(--text-main); }
-.install-banner button {
-  background: var(--accent); color: white; border: none; padding: 10px 16px;
-  border-radius: 12px; font-weight: 600; font-size: 13px; cursor: pointer;
-  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
-  transition: all 0.3s ease;
-}
-.install-banner button:hover {
-  background: var(--accent-hover);
-  box-shadow: 0 6px 16px rgba(139, 92, 246, 0.5);
-  transform: translateY(-1px);
+.alpha-hint {
+  font-size: 12px;
+  color: var(--text-soft);
+  opacity: 0.8;
 }

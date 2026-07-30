@@ -1,5 +1,3 @@
-
-
 /* ================= PWA / CACHE CLEAR ================= */
 // Удаляем старые Service Worker'ы, чтобы браузер не отдавал старую кэшированную версию
 if('serviceWorker' in navigator){
@@ -15,6 +13,7 @@ let currentView = 'home'; // 'home' or category id
 const CATEGORIES = [
   { id: 'tr', title: 'Турецкий', desc: '29 букв. Латиница.', data: TURKISH },
   { id: 'uk', title: 'Украинский', desc: '33 буквы. Кириллица.', data: UKRAINIAN },
+  { id: 'de', title: 'Немецкий', desc: '30 букв, умлауты и эсцет. Латиница.', data: GERMAN },
   { id: 'hira', title: 'Хирагана', desc: 'Базовая японская азбука.', data: HIRAGANA },
   { id: 'kata', title: 'Катакана', desc: 'Азбука для заимствований.', data: KATAKANA },
   { id: 'kanji', title: 'Кандзи', desc: 'Базовые японские иероглифы.', data: KANJI }
@@ -25,7 +24,15 @@ function speak(text, lang) {
   console.log(`[Audio Stub] Should speak: "${text}" with lang "${lang}"`);
 }
 
-
+function getTabBar() {
+  const tabs = CATEGORIES.map(cat => `
+    <button class="tab-btn ${currentView === cat.id ? 'active' : ''}" onclick="setView('${cat.id}')">
+      ${cat.title}
+    </button>
+  `).join('');
+  
+  return `<div class="tab-bar-scroll"><div class="tab-bar">${tabs}</div></div>`;
+}
 
 function render() {
   const app = document.getElementById('app');
@@ -33,7 +40,7 @@ function render() {
   let headerHtml = `
     <header>
       <div class="title-block">
-        <h1>Языковой <span class="accent">паспорт</span></h1>
+        <h1>Языковой <span class="accent">passport</span></h1>
         <p class="subtitle">Изучай алфавиты легко и быстро</p>
       </div>
     </header>
@@ -66,22 +73,26 @@ function render() {
       </button>
     `;
     
+    contentHtml = backBtn + getTabBar();
+
     if (currentView === 'tr') {
-      contentHtml = backBtn + renderCategory('tr', 'Турецкий алфавит', '29 букв. Произношение дано приблизительной русской транскрипцией.', TURKISH, tile);
+      contentHtml += renderCategory('tr', 'Турецкий алфавит', '29 букв. Произношение дано приблизительной русской транскрипцией.', TURKISH, tile);
     } else if (currentView === 'uk') {
-      contentHtml = backBtn + renderCategory('uk', 'Украинский алфавит', '33 буквы. Многие похожи на русские — обрати внимание на г/ґ, и/і, е/є.', UKRAINIAN, tile);
+      contentHtml += renderCategory('uk', 'Украинский алфавит', '33 буквы. Многие похожи на русские — обрати внимание на г/ґ, и/і, е/є.', UKRAINIAN, tile);
+    } else if (currentView === 'de') {
+      contentHtml += renderCategory('de', 'Немецкий алфавит', '30 букв. Включает умлауты Ä, Ö, Ü и эсцет ß.', GERMAN, tile);
     } else if (currentView === 'hira') {
-      contentHtml = backBtn + `<p class="alpha-intro">Хирагана — базовая японская азбука.</p>
+      contentHtml += `<p class="alpha-intro">Хирагана — базовая японская азбука.</p>
         ${kanaGroup(HIRAGANA, 'base', 'Основные знаки (годзюон)')}
         ${kanaGroup(HIRAGANA, 'daku', 'Звонкие (дакутэн)')}
         ${kanaGroup(HIRAGANA, 'handaku', 'Полузвонкие (хандакутэн)')}`;
     } else if (currentView === 'kata') {
-      contentHtml = backBtn + `<p class="alpha-intro">Катакана — азбука для иностранных слов и имён.</p>
+      contentHtml += `<p class="alpha-intro">Катакана — азбука для иностранных слов и имён.</p>
         ${kanaGroup(KATAKANA, 'base', 'Основные знаки (годзюон)')}
         ${kanaGroup(KATAKANA, 'daku', 'Звонкие (дакутэн)')}
         ${kanaGroup(KATAKANA, 'handaku', 'Полузвонкие (хандакутэн)')}`;
     } else if (currentView === 'kanji') {
-      contentHtml = backBtn + renderCategory('kanji', 'Кандзи', 'Иероглифы для старта: числа и базовые понятия.', KANJI, kanjiTile);
+      contentHtml += renderCategory('kanji', 'Кандзи', 'Иероглифы для старта: числа и базовые понятия.', KANJI, kanjiTile);
     }
   }
 
@@ -98,14 +109,15 @@ function renderCategory(catId, title, intro, dataArr, tileRenderer) {
 }
 
 function tile(item, catId) {
-  const [ch, pron] = item;
-  const lang = catId === 'tr' ? 'tr-TR' : catId === 'uk' ? 'uk-UA' : 'ja-JP';
-  const speakCh = catId === 'tr' ? ch.split(' ')[0] : ch.split(' ')[0];
+  const [ch, trans, hint] = item;
+  const lang = catId === 'tr' ? 'tr-TR' : catId === 'uk' ? 'uk-UA' : catId === 'de' ? 'de-DE' : 'ja-JP';
+  const speakCh = ch.split(' ')[0];
   
   return `
     <div class="alpha-tile" onclick="speak('${speakCh}','${lang}')">
       <div class="alpha-ch">${ch}</div>
-      <div class="alpha-pron">${pron}</div>
+      <div class="alpha-trans">${trans}</div>
+      ${hint ? `<div class="alpha-hint">${hint}</div>` : ''}
     </div>
   `;
 }
@@ -116,8 +128,8 @@ function kanjiTile(item, catId) {
   return `
     <div class="alpha-tile kanji-tile" onclick="speak('${ch}','ja-JP')">
       <div class="alpha-ch jp-font">${ch}</div>
-      <div class="alpha-pron">${read}</div>
-      <div class="kanji-mean">${mean}</div>
+      <div class="alpha-trans">[${read}]</div>
+      <div class="alpha-hint">${mean}</div>
     </div>
   `;
 }
@@ -134,7 +146,8 @@ function kanaGroup(list, group, title) {
         return `
           <div class="alpha-tile jp-font" onclick="speak('${kana}','ja-JP')">
             <div class="alpha-ch jp-font">${kana}</div>
-            <div class="alpha-pron">${pron} <span style="opacity:.6">(${romaji})</span></div>
+            <div class="alpha-trans">[${romaji}]</div>
+            <div class="alpha-hint">${pron}</div>
           </div>
         `;
       }).join('')}
@@ -148,7 +161,6 @@ function setView(id) {
 }
 
 // Экспортируем глобально, так как не используем type="module"
-
 window.setView = setView;
 window.speak = speak;
 
