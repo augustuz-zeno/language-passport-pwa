@@ -134,7 +134,32 @@ function render() {
     updateIndicator('#sub-tabs', lastSubTab);
     lastMainTab = null;
     lastSubTab = null;
+    triggerWaveAnimations();
   });
+}
+
+/* ================= WAVE ANIMATIONS (Intersection Observer) ================= */
+function triggerWaveAnimations() {
+  const areas = document.querySelectorAll('.content-area[data-wave]');
+  if (!areas.length) return;
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (!entry.isIntersecting) return;
+      const grid = entry.target.querySelector('.alpha-grid');
+      const dir  = entry.target.dataset.wave;
+      if (grid && dir && !grid.dataset.animated) {
+        grid.dataset.animated = '1';
+        // Force reflow so animation restarts cleanly
+        grid.classList.remove('wave-left', 'wave-right');
+        void grid.offsetWidth;
+        grid.classList.add(dir);
+      }
+      observer.unobserve(entry.target);
+    });
+  }, { threshold: 0.08 });
+
+  areas.forEach(area => observer.observe(area));
 }
 
 /* ================= TILE RENDERERS ================= */
@@ -173,12 +198,12 @@ function tileKana(item, index) {
 
 /* ================= GRID BUILDERS ================= */
 function renderGrid(catId, intro, dataArr, renderer) {
-  const wc = waveDir ? ` ${waveDir}` : '';
+  const dataWave = waveDir ? ` data-wave="${waveDir}"` : '';
   const tiles = dataArr.map((item, i) => renderer(item, catId, i)).join('');
   return `
     <p class="alpha-intro">${intro}</p>
-    <div class="content-area">
-      <div class="alpha-grid${wc}">${tiles}</div>
+    <div class="content-area"${dataWave}>
+      <div class="alpha-grid">${tiles}</div>
     </div>
   `;
 }
@@ -186,12 +211,12 @@ function renderGrid(catId, intro, dataArr, renderer) {
 function kanaGroup(list, group, title) {
   const items = list.filter(x => x[3] === group);
   if (!items.length) return '';
-  const wc = waveDir ? ` ${waveDir}` : '';
+  const dataWave = waveDir ? ` data-wave="${waveDir}"` : '';
   const tiles = items.map((item, i) => tileKana(item, i)).join('');
   return `
     <div class="alpha-group-title">${title}</div>
-    <div class="content-area">
-      <div class="alpha-grid${wc}">${tiles}</div>
+    <div class="content-area"${dataWave}>
+      <div class="alpha-grid">${tiles}</div>
     </div>
   `;
 }

@@ -349,30 +349,48 @@ header {
   box-shadow: var(--glass-shadow-hover);
 }
 
-/* ===== Wave Card Animations ===== */
+/* ===== Cube Wave Card Animations ===== */
 .content-area {
-  perspective: 900px;
+  perspective: 1000px;
+  perspective-origin: 50% 50%;
 }
 
-/* Each tile gets a custom --i index set inline */
 .alpha-grid.wave-left .alpha-tile {
-  animation: waveInLeft 0.35s cubic-bezier(0.4, 0, 0.2, 1) both;
-  animation-delay: calc(var(--i, 0) * 28ms);
+  animation: cubeInLeft 0.45s cubic-bezier(0.4, 0, 0.2, 1) both;
+  animation-delay: calc(var(--i, 0) * 38ms);
 }
 
 .alpha-grid.wave-right .alpha-tile {
-  animation: waveInRight 0.35s cubic-bezier(0.4, 0, 0.2, 1) both;
-  animation-delay: calc(var(--i, 0) * 28ms);
+  animation: cubeInRight 0.45s cubic-bezier(0.4, 0, 0.2, 1) both;
+  animation-delay: calc(var(--i, 0) * 38ms);
 }
 
-@keyframes waveInLeft {
-  from { opacity: 0; transform: rotateY(-20deg) translateX(30px) scale(0.96); }
-  to   { opacity: 1; transform: rotateY(0deg) translateX(0) scale(1); }
+@keyframes cubeInLeft {
+  from {
+    opacity: 0;
+    transform: rotateY(-90deg) scale(0.85);
+  }
+  60% {
+    opacity: 1;
+  }
+  to {
+    opacity: 1;
+    transform: rotateY(0deg) scale(1);
+  }
 }
 
-@keyframes waveInRight {
-  from { opacity: 0; transform: rotateY(20deg) translateX(-30px) scale(0.96); }
-  to   { opacity: 1; transform: rotateY(0deg) translateX(0) scale(1); }
+@keyframes cubeInRight {
+  from {
+    opacity: 0;
+    transform: rotateY(90deg) scale(0.85);
+  }
+  60% {
+    opacity: 1;
+  }
+  to {
+    opacity: 1;
+    transform: rotateY(0deg) scale(1);
+  }
 }
 
 .alpha-ch {
