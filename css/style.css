@@ -10,7 +10,8 @@
   --glass-border: rgba(255, 255, 255, 0.08);
   --glass-border-top: rgba(255, 255, 255, 0.12);
   --glass-border-hover: rgba(255, 255, 255, 0.2);
-  --glass-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  --glass-shadow: none;
+  --glass-shadow-hover: 0 8px 32px rgba(139, 92, 246, 0.35);
   --header-bg: rgba(13, 14, 18, 0.6);
 }
 
@@ -23,7 +24,8 @@
   --glass-border: rgba(0, 0, 0, 0.05);
   --glass-border-top: rgba(255, 255, 255, 0.6);
   --glass-border-hover: rgba(0, 0, 0, 0.1);
-  --glass-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+  --glass-shadow: none;
+  --glass-shadow-hover: 0 8px 24px rgba(139, 92, 246, 0.2);
   --header-bg: rgba(249, 250, 251, 0.8);
 }
 
@@ -33,7 +35,6 @@ html, body {
   padding: 0; 
   min-height: 100vh; 
   background-color: var(--bg); 
-  transition: background-color 0.5s ease, color 0.5s ease;
 }
 
 body {
@@ -88,7 +89,6 @@ header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  transition: background-color 0.5s ease, border-color 0.5s ease;
 }
 
 .theme-toggle {
@@ -107,33 +107,6 @@ header {
 .theme-toggle:hover {
   color: var(--text-main);
   background: var(--glass-bg);
-}
-
-#content.fade-up {
-  animation: fadeUp 0.3s ease forwards;
-}
-
-#content.slide-left {
-  animation: slideLeft 0.3s ease forwards;
-}
-
-#content.slide-right {
-  animation: slideRight 0.3s ease forwards;
-}
-
-@keyframes fadeUp {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes slideLeft {
-  from { opacity: 0; transform: translateX(20px); }
-  to { opacity: 1; transform: translateX(0); }
-}
-
-@keyframes slideRight {
-  from { opacity: 0; transform: translateX(-20px); }
-  to { opacity: 1; transform: translateX(0); }
 }
 
 .title-block h1 {
@@ -167,8 +140,8 @@ header {
   align-items: center;
   justify-content: space-between;
   cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: var(--glass-shadow);
+  transition: transform 0.25s ease, background 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+  box-shadow: none;
   text-align: left;
 }
 
@@ -177,7 +150,7 @@ header {
   background: var(--glass-bg-hover);
   border-color: var(--glass-border-hover);
   border-top-color: var(--glass-border-hover);
-  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
+  box-shadow: var(--glass-shadow-hover);
 }
 
 .lang-card-title {
@@ -272,8 +245,25 @@ header {
   border: 1px solid var(--glass-border);
   border-radius: 16px;
   padding: 4px;
-  box-shadow: var(--glass-shadow);
   margin: 0 auto;
+  position: relative;
+  transition: background-color 0.5s ease, border-color 0.5s ease;
+}
+
+.tab-indicator {
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  left: 0;
+  width: 0;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  z-index: 0;
+  pointer-events: none;
+  transition: background-color 0.5s ease;
+}
+:root.light-theme .tab-indicator {
+  background: rgba(0, 0, 0, 0.06);
 }
 
 .tab-btn {
@@ -286,7 +276,9 @@ header {
   font-weight: 500;
   cursor: pointer;
   white-space: nowrap;
-  transition: all 0.3s ease;
+  transition: color 0.3s ease;
+  position: relative;
+  z-index: 1;
 }
 
 .tab-btn:hover {
@@ -295,9 +287,8 @@ header {
 }
 
 .tab-btn.active {
-  background: rgba(255, 255, 255, 0.1);
+  background: transparent;
   color: var(--text-main);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 /* Alphabet Grid */
@@ -345,8 +336,8 @@ header {
   padding: 16px 10px;
   text-align: center;
   cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: var(--glass-shadow);
+  transition: transform 0.25s ease, background 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+  box-shadow: none;
   user-select: none;
   -webkit-tap-highlight-color: transparent;
 }
@@ -355,7 +346,33 @@ header {
   background: var(--glass-bg-hover);
   border-color: var(--glass-border-hover);
   border-top-color: var(--glass-border-hover);
-  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
+  box-shadow: var(--glass-shadow-hover);
+}
+
+/* ===== Wave Card Animations ===== */
+.content-area {
+  perspective: 900px;
+}
+
+/* Each tile gets a custom --i index set inline */
+.alpha-grid.wave-left .alpha-tile {
+  animation: waveInLeft 0.35s cubic-bezier(0.4, 0, 0.2, 1) both;
+  animation-delay: calc(var(--i, 0) * 28ms);
+}
+
+.alpha-grid.wave-right .alpha-tile {
+  animation: waveInRight 0.35s cubic-bezier(0.4, 0, 0.2, 1) both;
+  animation-delay: calc(var(--i, 0) * 28ms);
+}
+
+@keyframes waveInLeft {
+  from { opacity: 0; transform: rotateY(-20deg) translateX(30px) scale(0.96); }
+  to   { opacity: 1; transform: rotateY(0deg) translateX(0) scale(1); }
+}
+
+@keyframes waveInRight {
+  from { opacity: 0; transform: rotateY(20deg) translateX(-30px) scale(0.96); }
+  to   { opacity: 1; transform: rotateY(0deg) translateX(0) scale(1); }
 }
 
 .alpha-ch {

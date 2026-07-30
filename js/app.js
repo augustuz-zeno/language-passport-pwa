@@ -1,61 +1,43 @@
-/* ================= PWA / CACHE CLEAR ================= */
-// Удаляем старые Service Worker'ы, чтобы браузер не отдавал старую кэшированную версию
-if('serviceWorker' in navigator){
-  navigator.serviceWorker.getRegistrations().then(function(registrations) {
-    for(let registration of registrations) {
-      registration.unregister();
-    }
-  });
-}
-/* ================= LOGIC ================= */
-let currentView = 'home'; // 'home' or category id
-let currentSubView = 'hira'; // 'hira', 'kata', 'kanji'
-let transitionDirection = 'fade-up';
+/* ================= STATE ================= */
+let currentView = 'home';
+let currentSubView = 'hira';
+let lastMainTab = null;
+let lastSubTab = null;
+let waveDir = null; // 'wave-left' | 'wave-right' | null
 
-// Theme Init
+/* ================= THEME ================= */
 let isLightTheme = localStorage.getItem('theme') === 'light';
-if (isLightTheme) {
-  document.documentElement.classList.add('light-theme');
-}
+if (isLightTheme) document.documentElement.classList.add('light-theme');
 
 function toggleTheme() {
   isLightTheme = !isLightTheme;
-  if (isLightTheme) {
-    document.documentElement.classList.add('light-theme');
-    localStorage.setItem('theme', 'light');
-  } else {
-    document.documentElement.classList.remove('light-theme');
-    localStorage.setItem('theme', 'dark');
-  }
+  document.documentElement.classList.toggle('light-theme', isLightTheme);
+  localStorage.setItem('theme', isLightTheme ? 'light' : 'dark');
   render();
 }
 
+/* ================= DATA ================= */
 const CATEGORIES = [
-  { id: 'tr', title: 'Турецкий', desc: '29 букв. Латиница.' },
+  { id: 'tr', title: 'Турецкий',   desc: '29 букв. Латиница.' },
   { id: 'uk', title: 'Украинский', desc: '33 буквы. Кириллица.' },
-  { id: 'de', title: 'Немецкий', desc: '30 букв, умлауты и эсцет. Латиница.' },
-  { id: 'ja', title: 'Японский', desc: 'Хирагана, Катакана, Кандзи.' }
+  { id: 'de', title: 'Немецкий',   desc: '30 букв, умлауты и эсцет. Латиница.' },
+  { id: 'ja', title: 'Японский',   desc: 'Хирагана, Катакана, Кандзи.' }
 ];
 
 const JA_CATEGORIES = [
-  { id: 'hira', title: 'Хирагана' },
-  { id: 'kata', title: 'Катакана' },
-  { id: 'kanji', title: 'Кандзи' }
+  { id: 'hira',  title: 'Хирагана' },
+  { id: 'kata',  title: 'Катакана' },
+  { id: 'kanji', title: 'Кандзи'   }
 ];
 
-function speak(text, lang) {
-  // Затычка на будущее, аудио пока отключено
-  console.log(`[Audio Stub] Should speak: "${text}" with lang "${lang}"`);
-}
-
+/* ================= TAB BARS ================= */
 function getTabBar() {
   const tabs = CATEGORIES.map(cat => `
     <button class="tab-btn ${currentView === cat.id ? 'active' : ''}" onclick="setView('${cat.id}')">
       ${cat.title}
     </button>
   `).join('');
-  
-  return `<div class="tab-bar-scroll"><div class="tab-bar">${tabs}</div></div>`;
+  return `<div class="tab-bar-scroll"><div class="tab-bar" id="main-tabs"><div class="tab-indicator"></div>${tabs}</div></div>`;
 }
 
 function getJaTabBar() {
@@ -64,33 +46,32 @@ function getJaTabBar() {
       ${cat.title}
     </button>
   `).join('');
-  
-  return `<div class="nav-row"><div class="tab-bar-scroll"><div class="tab-bar">${tabs}</div></div></div>`;
+  return `<div class="nav-row"><div class="tab-bar-scroll"><div class="tab-bar" id="sub-tabs"><div class="tab-indicator"></div>${tabs}</div></div></div>`;
 }
 
+/* ================= RENDER ================= */
 function render() {
   const app = document.getElementById('app');
-  
-  const themeIcon = isLightTheme 
-    ? `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>`
-    : `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>`;
 
-  let headerHtml = `
+  const moonSvg = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>`;
+  const sunSvg  = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>`;
+
+  const header = `
     <header>
-      <div class="title-block" onclick="setView('home')" style="cursor: pointer;" title="На главную">
+      <div class="title-block" onclick="setView('home')" style="cursor:pointer" title="На главную">
         <h1>Языковой <span class="accent">passport</span></h1>
         <p class="subtitle">Изучай алфавиты легко и быстро</p>
       </div>
       <button class="theme-toggle" onclick="toggleTheme()" aria-label="Переключить тему">
-        ${themeIcon}
+        ${isLightTheme ? moonSvg : sunSvg}
       </button>
     </header>
   `;
 
-  let contentHtml = '';
-  
+  let body = '';
+
   if (currentView === 'home') {
-    const cardsHtml = CATEGORIES.map(cat => `
+    const cards = CATEGORIES.map(cat => `
       <div class="lang-card" onclick="setView('${cat.id}')">
         <div>
           <h2 class="lang-card-title">${cat.title}</h2>
@@ -103,18 +84,17 @@ function render() {
         </div>
       </div>
     `).join('');
-    
-    contentHtml = `<div class="home-grid">${cardsHtml}</div>`;
+    body = `<div class="home-grid">${cards}</div>`;
+
   } else {
-    // Render Category
     const backBtn = `
       <button class="back-btn" onclick="setView('home')">
         <svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
         Назад
       </button>
     `;
-    
-    let navContent = `
+
+    body = `
       <div class="nav-container">
         <div class="nav-row">
           ${backBtn}
@@ -124,50 +104,44 @@ function render() {
       </div>
     `;
 
-    contentHtml = navContent;
-
     if (currentView === 'tr') {
-      contentHtml += renderCategory('tr', 'Турецкий алфавит', '29 букв. Произношение дано приблизительной русской транскрипцией.', TURKISH, tile);
+      body += renderGrid('tr', '29 букв. Произношение дано приблизительной русской транскрипцией.', TURKISH, tileLetter);
     } else if (currentView === 'uk') {
-      contentHtml += renderCategory('uk', 'Украинский алфавит', '33 буквы. Многие похожи на русские — обрати внимание на г/ґ, и/і, е/є.', UKRAINIAN, tile);
+      body += renderGrid('uk', '33 буквы. Многие похожи на русские — обрати внимание на г/ґ, и/і, е/є.', UKRAINIAN, tileLetter);
     } else if (currentView === 'de') {
-      contentHtml += renderCategory('de', 'Немецкий алфавит', '30 букв. Включает умлауты Ä, Ö, Ü и эсцет ß.', GERMAN, tile);
+      body += renderGrid('de', '30 букв. Включает умлауты Ä, Ö, Ü и эсцет ß.', GERMAN, tileLetter);
     } else if (currentView === 'ja') {
       if (currentSubView === 'hira') {
-        contentHtml += `<p class="alpha-intro">Хирагана — базовая японская азбука.</p>
-          ${kanaGroup(HIRAGANA, 'base', 'Основные знаки (годзюон)')}
-          ${kanaGroup(HIRAGANA, 'daku', 'Звонкие (дакутэн)')}
-          ${kanaGroup(HIRAGANA, 'handaku', 'Полузвонкие (хандакутэн)')}`;
+        body += `<p class="alpha-intro">Хирагана — базовая японская азбука.</p>`;
+        body += kanaGroup(HIRAGANA, 'base', 'Основные знаки (годзюон)');
+        body += kanaGroup(HIRAGANA, 'daku', 'Звонкие (дакутэн)');
+        body += kanaGroup(HIRAGANA, 'handaku', 'Полузвонкие (хандакутэн)');
       } else if (currentSubView === 'kata') {
-        contentHtml += `<p class="alpha-intro">Катакана — азбука для иностранных слов и имён.</p>
-          ${kanaGroup(KATAKANA, 'base', 'Основные знаки (годзюон)')}
-          ${kanaGroup(KATAKANA, 'daku', 'Звонкие (дакутэн)')}
-          ${kanaGroup(KATAKANA, 'handaku', 'Полузвонкие (хандакутэн)')}`;
+        body += `<p class="alpha-intro">Катакана — азбука для иностранных слов и имён.</p>`;
+        body += kanaGroup(KATAKANA, 'base', 'Основные знаки (годзюон)');
+        body += kanaGroup(KATAKANA, 'daku', 'Звонкие (дакутэн)');
+        body += kanaGroup(KATAKANA, 'handaku', 'Полузвонкие (хандакутэн)');
       } else if (currentSubView === 'kanji') {
-        contentHtml += renderCategory('kanji', 'Кандзи', 'Иероглифы для старта: числа и базовые понятия.', KANJI, kanjiTile);
+        body += renderGrid('kanji', 'Иероглифы для старта: числа и базовые понятия.', KANJI, tileKanji);
       }
     }
   }
 
-  app.innerHTML = headerHtml + `<div id="content" class="${transitionDirection}">${contentHtml}</div>`;
+  app.innerHTML = header + `<div id="content">${body}</div>`;
+
+  requestAnimationFrame(() => {
+    updateIndicator('#main-tabs', lastMainTab);
+    updateIndicator('#sub-tabs', lastSubTab);
+    lastMainTab = null;
+    lastSubTab = null;
+  });
 }
 
-function renderCategory(catId, title, intro, dataArr, tileRenderer) {
-  return `
-    <p class="alpha-intro">${intro}</p>
-    <div class="alpha-grid">
-      ${dataArr.map(item => tileRenderer(item, catId)).join('')}
-    </div>
-  `;
-}
-
-function tile(item, catId) {
+/* ================= TILE RENDERERS ================= */
+function tileLetter(item, catId, index) {
   const [ch, trans, hint] = item;
-  const lang = catId === 'tr' ? 'tr-TR' : catId === 'uk' ? 'uk-UA' : catId === 'de' ? 'de-DE' : 'ja-JP';
-  const speakCh = ch.split(' ')[0];
-  
   return `
-    <div class="alpha-tile" onclick="speak('${speakCh}','${lang}')">
+    <div class="alpha-tile" style="--i:${index}">
       <div class="alpha-ch">${ch}</div>
       <div class="alpha-trans">${trans}</div>
       ${hint ? `<div class="alpha-hint">${hint}</div>` : ''}
@@ -175,11 +149,10 @@ function tile(item, catId) {
   `;
 }
 
-function kanjiTile(item, catId) {
+function tileKanji(item, catId, index) {
   const [ch, read, mean] = item;
-  
   return `
-    <div class="alpha-tile kanji-tile" onclick="speak('${ch}','ja-JP')">
+    <div class="alpha-tile" style="--i:${index}">
       <div class="alpha-ch jp-font">${ch}</div>
       <div class="alpha-trans">[${read}]</div>
       <div class="alpha-hint">${mean}</div>
@@ -187,62 +160,120 @@ function kanjiTile(item, catId) {
   `;
 }
 
-function kanaGroup(list, group, title) {
-  const items = list.filter(x => x[3] === group);
-  if (items.length === 0) return '';
-  
+function tileKana(item, index) {
+  const [kana, romaji, pron] = item;
   return `
-    <div class="alpha-group-title">${title}</div>
-    <div class="alpha-grid">
-      ${items.map(item => {
-        const [kana, romaji, pron] = item;
-        return `
-          <div class="alpha-tile jp-font" onclick="speak('${kana}','ja-JP')">
-            <div class="alpha-ch jp-font">${kana}</div>
-            <div class="alpha-trans">[${romaji}]</div>
-            <div class="alpha-hint">${pron}</div>
-          </div>
-        `;
-      }).join('')}
+    <div class="alpha-tile jp-font" style="--i:${index}">
+      <div class="alpha-ch jp-font">${kana}</div>
+      <div class="alpha-trans">[${romaji}]</div>
+      <div class="alpha-hint">${pron}</div>
     </div>
   `;
 }
 
-function setView(id) {
-  if (id === 'home') {
-    transitionDirection = 'fade-up';
+/* ================= GRID BUILDERS ================= */
+function renderGrid(catId, intro, dataArr, renderer) {
+  const wc = waveDir ? ` ${waveDir}` : '';
+  const tiles = dataArr.map((item, i) => renderer(item, catId, i)).join('');
+  return `
+    <p class="alpha-intro">${intro}</p>
+    <div class="content-area">
+      <div class="alpha-grid${wc}">${tiles}</div>
+    </div>
+  `;
+}
+
+function kanaGroup(list, group, title) {
+  const items = list.filter(x => x[3] === group);
+  if (!items.length) return '';
+  const wc = waveDir ? ` ${waveDir}` : '';
+  const tiles = items.map((item, i) => tileKana(item, i)).join('');
+  return `
+    <div class="alpha-group-title">${title}</div>
+    <div class="content-area">
+      <div class="alpha-grid${wc}">${tiles}</div>
+    </div>
+  `;
+}
+
+/* ================= INDICATOR ================= */
+function updateIndicator(selector, lastPos) {
+  const container = document.querySelector(selector);
+  if (!container) return;
+  const active    = container.querySelector('.tab-btn.active');
+  const indicator = container.querySelector('.tab-indicator');
+  if (!active || !indicator) return;
+
+  const cur = { left: active.offsetLeft, width: active.offsetWidth };
+
+  if (lastPos) {
+    indicator.style.transition = 'none';
+    indicator.style.left  = lastPos.left  + 'px';
+    indicator.style.width = lastPos.width + 'px';
+    indicator.getBoundingClientRect(); // force reflow
+    indicator.style.transition = 'left 0.3s cubic-bezier(0.4,0,0.2,1), width 0.3s cubic-bezier(0.4,0,0.2,1)';
   } else {
-    let oldIdx = CATEGORIES.findIndex(c => c.id === currentView);
-    let newIdx = CATEGORIES.findIndex(c => c.id === id);
-    if (oldIdx !== -1 && newIdx !== -1) {
-      transitionDirection = newIdx > oldIdx ? 'slide-left' : 'slide-right';
-    } else {
-      transitionDirection = 'fade-up';
-    }
+    indicator.style.transition = 'none';
   }
+
+  indicator.style.left  = cur.left  + 'px';
+  indicator.style.width = cur.width + 'px';
+}
+
+/* ================= NAVIGATION ================= */
+function setView(id) {
+  // Save indicator position before re-render
+  const activeMain = document.querySelector('#main-tabs .tab-btn.active');
+  if (activeMain) lastMainTab = { left: activeMain.offsetLeft, width: activeMain.offsetWidth };
+
+  // Wave direction between language tabs (all languages, including ja)
+  const oldIdx = CATEGORIES.findIndex(c => c.id === currentView);
+  const newIdx = CATEGORIES.findIndex(c => c.id === id);
+  if (oldIdx !== -1 && newIdx !== -1 && id !== 'home' && currentView !== 'home') {
+    waveDir = newIdx > oldIdx ? 'wave-left' : 'wave-right';
+  } else {
+    waveDir = null;
+  }
+
   currentView = id;
   if (id === 'ja' && !['hira', 'kata', 'kanji'].includes(currentSubView)) {
     currentSubView = 'hira';
   }
+
+  // Dynamic title
+  const cat = CATEGORIES.find(c => c.id === id);
+  document.title = id === 'home'
+    ? 'Языковой паспорт — Алфавиты'
+    : cat ? `${cat.title} — Языковой паспорт` : 'Языковой паспорт';
+
   render();
 }
 
 function setSubView(id) {
-  let oldIdx = JA_CATEGORIES.findIndex(c => c.id === currentSubView);
-  let newIdx = JA_CATEGORIES.findIndex(c => c.id === id);
-  if (oldIdx !== -1 && newIdx !== -1) {
-    transitionDirection = newIdx > oldIdx ? 'slide-left' : 'slide-right';
-  } else {
-    transitionDirection = 'fade-up';
-  }
+  const activeSub = document.querySelector('#sub-tabs .tab-btn.active');
+  if (activeSub) lastSubTab = { left: activeSub.offsetLeft, width: activeSub.offsetWidth };
+
+  // Wave direction between Japanese sub-tabs
+  const oldIdx = JA_CATEGORIES.findIndex(c => c.id === currentSubView);
+  const newIdx = JA_CATEGORIES.findIndex(c => c.id === id);
+  waveDir = (oldIdx !== -1 && newIdx !== -1)
+    ? (newIdx > oldIdx ? 'wave-left' : 'wave-right')
+    : null;
+
   currentSubView = id;
+
+  const sub = JA_CATEGORIES.find(c => c.id === id);
+  document.title = sub
+    ? `Японский · ${sub.title} — Языковой паспорт`
+    : 'Японский — Языковой паспорт';
+
   render();
 }
 
-window.setView = setView;
-window.setSubView = setSubView;
-window.speak = speak;
+/* ================= EXPOSE GLOBALS ================= */
+window.setView     = setView;
+window.setSubView  = setSubView;
 window.toggleTheme = toggleTheme;
 
-// Первичный рендер
+/* ================= INIT ================= */
 render();
