@@ -9,14 +9,19 @@ if('serviceWorker' in navigator){
 }
 /* ================= LOGIC ================= */
 let currentView = 'home'; // 'home' or category id
+let currentSubView = 'hira'; // 'hira', 'kata', 'kanji'
 
 const CATEGORIES = [
-  { id: 'tr', title: 'Турецкий', desc: '29 букв. Латиница.', data: TURKISH },
-  { id: 'uk', title: 'Украинский', desc: '33 буквы. Кириллица.', data: UKRAINIAN },
-  { id: 'de', title: 'Немецкий', desc: '30 букв, умлауты и эсцет. Латиница.', data: GERMAN },
-  { id: 'hira', title: 'Хирагана', desc: 'Базовая японская азбука.', data: HIRAGANA },
-  { id: 'kata', title: 'Катакана', desc: 'Азбука для заимствований.', data: KATAKANA },
-  { id: 'kanji', title: 'Кандзи', desc: 'Базовые японские иероглифы.', data: KANJI }
+  { id: 'tr', title: 'Турецкий', desc: '29 букв. Латиница.' },
+  { id: 'uk', title: 'Украинский', desc: '33 буквы. Кириллица.' },
+  { id: 'de', title: 'Немецкий', desc: '30 букв, умлауты и эсцет. Латиница.' },
+  { id: 'ja', title: 'Японский', desc: 'Хирагана, Катакана, Кандзи.' }
+];
+
+const JA_CATEGORIES = [
+  { id: 'hira', title: 'Хирагана' },
+  { id: 'kata', title: 'Катакана' },
+  { id: 'kanji', title: 'Кандзи' }
 ];
 
 function speak(text, lang) {
@@ -32,6 +37,16 @@ function getTabBar() {
   `).join('');
   
   return `<div class="tab-bar-scroll"><div class="tab-bar">${tabs}</div></div>`;
+}
+
+function getJaTabBar() {
+  const tabs = JA_CATEGORIES.map(cat => `
+    <button class="tab-btn ${currentSubView === cat.id ? 'active' : ''}" onclick="setSubView('${cat.id}')">
+      ${cat.title}
+    </button>
+  `).join('');
+  
+  return `<div class="tab-bar-scroll mt-2"><div class="tab-bar">${tabs}</div></div>`;
 }
 
 function render() {
@@ -73,7 +88,12 @@ function render() {
       </button>
     `;
     
-    contentHtml = backBtn + getTabBar();
+    contentHtml = `
+      <div class="nav-header">
+        ${backBtn}
+        ${getTabBar()}
+      </div>
+    `;
 
     if (currentView === 'tr') {
       contentHtml += renderCategory('tr', 'Турецкий алфавит', '29 букв. Произношение дано приблизительной русской транскрипцией.', TURKISH, tile);
@@ -81,18 +101,21 @@ function render() {
       contentHtml += renderCategory('uk', 'Украинский алфавит', '33 буквы. Многие похожи на русские — обрати внимание на г/ґ, и/і, е/є.', UKRAINIAN, tile);
     } else if (currentView === 'de') {
       contentHtml += renderCategory('de', 'Немецкий алфавит', '30 букв. Включает умлауты Ä, Ö, Ü и эсцет ß.', GERMAN, tile);
-    } else if (currentView === 'hira') {
-      contentHtml += `<p class="alpha-intro">Хирагана — базовая японская азбука.</p>
-        ${kanaGroup(HIRAGANA, 'base', 'Основные знаки (годзюон)')}
-        ${kanaGroup(HIRAGANA, 'daku', 'Звонкие (дакутэн)')}
-        ${kanaGroup(HIRAGANA, 'handaku', 'Полузвонкие (хандакутэн)')}`;
-    } else if (currentView === 'kata') {
-      contentHtml += `<p class="alpha-intro">Катакана — азбука для иностранных слов и имён.</p>
-        ${kanaGroup(KATAKANA, 'base', 'Основные знаки (годзюон)')}
-        ${kanaGroup(KATAKANA, 'daku', 'Звонкие (дакутэн)')}
-        ${kanaGroup(KATAKANA, 'handaku', 'Полузвонкие (хандакутэн)')}`;
-    } else if (currentView === 'kanji') {
-      contentHtml += renderCategory('kanji', 'Кандзи', 'Иероглифы для старта: числа и базовые понятия.', KANJI, kanjiTile);
+    } else if (currentView === 'ja') {
+      contentHtml += getJaTabBar();
+      if (currentSubView === 'hira') {
+        contentHtml += `<p class="alpha-intro">Хирагана — базовая японская азбука.</p>
+          ${kanaGroup(HIRAGANA, 'base', 'Основные знаки (годзюон)')}
+          ${kanaGroup(HIRAGANA, 'daku', 'Звонкие (дакутэн)')}
+          ${kanaGroup(HIRAGANA, 'handaku', 'Полузвонкие (хандакутэн)')}`;
+      } else if (currentSubView === 'kata') {
+        contentHtml += `<p class="alpha-intro">Катакана — азбука для иностранных слов и имён.</p>
+          ${kanaGroup(KATAKANA, 'base', 'Основные знаки (годзюон)')}
+          ${kanaGroup(KATAKANA, 'daku', 'Звонкие (дакутэн)')}
+          ${kanaGroup(KATAKANA, 'handaku', 'Полузвонкие (хандакутэн)')}`;
+      } else if (currentSubView === 'kanji') {
+        contentHtml += renderCategory('kanji', 'Кандзи', 'Иероглифы для старта: числа и базовые понятия.', KANJI, kanjiTile);
+      }
     }
   }
 
@@ -157,11 +180,19 @@ function kanaGroup(list, group, title) {
 
 function setView(id) {
   currentView = id;
+  if (id === 'ja' && !['hira', 'kata', 'kanji'].includes(currentSubView)) {
+    currentSubView = 'hira';
+  }
   render();
 }
 
-// Экспортируем глобально, так как не используем type="module"
+function setSubView(id) {
+  currentSubView = id;
+  render();
+}
+
 window.setView = setView;
+window.setSubView = setSubView;
 window.speak = speak;
 
 // Первичный рендер
