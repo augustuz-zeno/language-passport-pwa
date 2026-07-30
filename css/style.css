@@ -251,6 +251,7 @@ header {
   margin: 32px 0 16px;
   display: flex; align-items: center; gap: 12px;
 }
+.alpha-group-title::before,
 .alpha-group-title::after {
   content: ""; flex: 1; height: 1px; background: var(--glass-border);
 }
