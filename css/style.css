@@ -11,10 +11,30 @@
   --glass-border-top: rgba(255, 255, 255, 0.12);
   --glass-border-hover: rgba(255, 255, 255, 0.2);
   --glass-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  --header-bg: rgba(13, 14, 18, 0.6);
+}
+
+:root.light-theme {
+  --bg: #F9FAFB;
+  --text-main: #111827;
+  --text-soft: #4B5563;
+  --glass-bg: rgba(255, 255, 255, 0.7);
+  --glass-bg-hover: rgba(255, 255, 255, 0.9);
+  --glass-border: rgba(0, 0, 0, 0.05);
+  --glass-border-top: rgba(255, 255, 255, 0.6);
+  --glass-border-hover: rgba(0, 0, 0, 0.1);
+  --glass-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+  --header-bg: rgba(249, 250, 251, 0.8);
 }
 
 * { box-sizing: border-box; }
-html, body { margin: 0; padding: 0; min-height: 100vh; background-color: var(--bg); }
+html, body { 
+  margin: 0; 
+  padding: 0; 
+  min-height: 100vh; 
+  background-color: var(--bg); 
+  transition: background-color 0.5s ease, color 0.5s ease;
+}
 
 body {
   color: var(--text-soft);
@@ -57,7 +77,7 @@ header {
   position: sticky;
   top: 0;
   z-index: 100;
-  background: rgba(13, 14, 18, 0.6);
+  background: var(--header-bg);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   padding: 20px 0 16px;
@@ -68,6 +88,52 @@ header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  transition: background-color 0.5s ease, border-color 0.5s ease;
+}
+
+.theme-toggle {
+  background: transparent;
+  border: none;
+  color: var(--text-soft);
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.theme-toggle:hover {
+  color: var(--text-main);
+  background: var(--glass-bg);
+}
+
+#content.fade-up {
+  animation: fadeUp 0.3s ease forwards;
+}
+
+#content.slide-left {
+  animation: slideLeft 0.3s ease forwards;
+}
+
+#content.slide-right {
+  animation: slideRight 0.3s ease forwards;
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideLeft {
+  from { opacity: 0; transform: translateX(20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes slideRight {
+  from { opacity: 0; transform: translateX(-20px); }
+  to { opacity: 1; transform: translateX(0); }
 }
 
 .title-block h1 {
