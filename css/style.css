@@ -147,20 +147,22 @@ header {
   justify-content: center;
   gap: 6px;
   background: transparent;
-  border: none;
+  border: 1px solid transparent;
   color: var(--text-soft);
   font-family: 'Inter', sans-serif;
   font-weight: 600;
   font-size: 14px;
   cursor: pointer;
   padding: 8px 12px;
-  border-radius: 12px;
+  border-radius: 14px;
   transition: all 0.3s ease;
   white-space: nowrap;
+  flex-shrink: 0;
 }
 .back-btn:hover {
   color: var(--text-main);
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--glass-bg);
+  border-color: var(--glass-border);
 }
 .back-btn svg {
   width: 16px;
@@ -168,29 +170,36 @@ header {
   fill: currentColor;
 }
 
-.nav-header {
+.nav-container {
   display: flex;
+  flex-direction: column;
   align-items: center;
   gap: 12px;
-  margin-top: 16px;
-  margin-bottom: 20px;
+  margin: 16px 0 24px;
+  width: 100%;
+}
+
+.nav-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  width: 100%;
+  max-width: 100%;
 }
 
 /* Tab Bar */
 .tab-bar-scroll {
+  display: flex;
   overflow-x: auto;
-  flex: 1;
   scrollbar-width: none;
-}
-.tab-bar-scroll.mt-2 {
-  margin-top: -8px;
-  margin-bottom: 20px;
+  max-width: 100%;
 }
 .tab-bar-scroll::-webkit-scrollbar { display: none; }
 
 .tab-bar {
   display: inline-flex;
-  gap: 8px;
+  gap: 6px;
   background: var(--glass-bg);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
@@ -198,6 +207,7 @@ header {
   border-radius: 16px;
   padding: 4px;
   box-shadow: var(--glass-shadow);
+  margin: 0 auto;
 }
 
 .tab-btn {

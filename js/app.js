@@ -46,7 +46,7 @@ function getJaTabBar() {
     </button>
   `).join('');
   
-  return `<div class="tab-bar-scroll mt-2"><div class="tab-bar">${tabs}</div></div>`;
+  return `<div class="nav-row"><div class="tab-bar-scroll"><div class="tab-bar">${tabs}</div></div></div>`;
 }
 
 function render() {
@@ -88,12 +88,17 @@ function render() {
       </button>
     `;
     
-    contentHtml = `
-      <div class="nav-header">
-        ${backBtn}
-        ${getTabBar()}
+    let navContent = `
+      <div class="nav-container">
+        <div class="nav-row">
+          ${backBtn}
+          ${getTabBar()}
+        </div>
+        ${currentView === 'ja' ? getJaTabBar() : ''}
       </div>
     `;
+
+    contentHtml = navContent;
 
     if (currentView === 'tr') {
       contentHtml += renderCategory('tr', 'Турецкий алфавит', '29 букв. Произношение дано приблизительной русской транскрипцией.', TURKISH, tile);
@@ -102,7 +107,6 @@ function render() {
     } else if (currentView === 'de') {
       contentHtml += renderCategory('de', 'Немецкий алфавит', '30 букв. Включает умлауты Ä, Ö, Ü и эсцет ß.', GERMAN, tile);
     } else if (currentView === 'ja') {
-      contentHtml += getJaTabBar();
       if (currentSubView === 'hira') {
         contentHtml += `<p class="alpha-intro">Хирагана — базовая японская азбука.</p>
           ${kanaGroup(HIRAGANA, 'base', 'Основные знаки (годзюон)')}
